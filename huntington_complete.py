@@ -41,8 +41,8 @@ def risk(max_counter):
     else:
         return "término inválido"  # Por si falla o sucede algo extraño.
 
-# Diccionario para el multi FASTA
-sequences = {}  # Inicia diccionario vacio
+# Diccionario para el multi FASTA.
+sequences = {}  # Inicia diccionario vacio.
 seq_name = ""  # Para nos nombres de la secuencia al imprimir.
 
 # Leer el archivo multi FASTA.
@@ -50,16 +50,16 @@ with open("htt_multi_seq.fasta") as file:
     for line in file:
         line = line.strip()
         if line.startswith(">"):
-            seq_name = line[1:]  # Guarda nombre sin ">"
-            sequences[seq_name] = ""  # Secuencia vacía en el diccionario
+            seq_name = line[1:]  # Guarda nombre sin ">".
+            sequences[seq_name] = ""  # Secuencia vacía en el diccionario.
         else:
             sequences[seq_name] += line.upper()  # Agrega secuencia, mayúscula por si hay errores.
 
 # Archivo aparte para los resultados
 with open("resultados_htt.txt", "w") as output_file:
 
-    for seq_name in sequences:  # Usa las llaves de diccionario
-        sequence = sequences[seq_name]  # Accede a la secuencia mediante la llave
+    for seq_name in sequences:  # Usa las llaves de diccionario.
+        sequence = sequences[seq_name]  # Accede a la secuencia mediante la llave.
 
         # Escribir resultados en el archivo
         output_file.write(f"Secuencia: {seq_name}\n")
