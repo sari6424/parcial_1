@@ -1,55 +1,69 @@
-sequence = "" # Variable vacía para almacenar la secuencia de ADN.
+# Función para contar repeticiones de CAG según el ATG.
+def CAG_count_ATG(sequence):
+    max_reps_CAG = 0  # Máximo de repeticiones CAG.
 
-# Función para contar la máxima cantidad de repeticiones consecutivas de CAG.
-def CAG_count(sequence):
-    codon_counter = 0     # Contador de repeticiones consecutivas de CAG.
-    max_counter = 0       # Almacena el máximo de repeticiones consecutivas de CAG.
+    # Recorre la secuencia en busca de cada 'ATG'.
+    for start_pos in range(len(sequence) - 2):
+        if sequence[start_pos:start_pos + 3] == "ATG":  # Va de 3 en 3.
+            codon_counter = 0
+            read_counter = 0
 
-    # Itera sobre la secuencia en pasos de 3 nucleótidos (un codón).
-    for nuc in range(0, len(sequence), 3):
-        codon = sequence[nuc:nuc + 3]  # Extrae un codón de 3 nucleótidos.
+            # Itera desde cada ATG.
+            for nuc in range(start_pos, len(sequence), 3): # Va de 3 en 3.
+                codon = sequence[nuc:nuc + 3]  #Revisa codones.
+                if codon == "CAG":
+                    codon_counter += 1
+                else:
+                    # Actualiza el máximo CAG si es necesario.
+                    if codon_counter > read_counter:
+                        read_counter = codon_counter
+                    codon_counter = 0
 
-        # Comprueba si el codón es "CAG".
-        if codon == "CAG":
-            codon_counter += 1  # Incrementa el contador si es CAG.
-        else:
-            # Si termina las repticiones de CAG, compara y actualiza el máximo.
-            if codon_counter > max_counter:
-                max_counter = codon_counter
-            codon_counter = 0  # Reinicia el contador para la siguiente serie de CAG si hay.
+            # Actualiza el máximo de repeticiones según los ATG si es necesario.
+            if read_counter > max_reps_CAG:
+                max_reps_CAG = read_counter
 
-    # Devuelve el máximo de CAG encontradas.
-    return max_counter
+    return max_reps_CAG
 
 
-# Función que clasifica el riesgo según la cantidad de CAG.
+# Clasificación del riesgo según cantidad de repeticiones de CAG.
 def risk(max_counter):
-    # Revisa la cantidad de repeticiones y clasifica el riesgo.
-    if CAG_count(sequence) < 27:
+    if CAG_count_ATG(sequence) < 27:
         return "rango normal, no hay riesgo"
-    elif CAG_count(sequence) >= 27 and CAG_count(sequence) < 36:
+    elif CAG_count_ATG(sequence) >= 27 and CAG_count_ATG(sequence) < 36:
         return "riesgo bajo"
-    elif CAG_count(sequence) >= 36 and CAG_count(sequence) < 40:
+    elif CAG_count_ATG(sequence) >= 36 and CAG_count_ATG(sequence) < 40:
         return "riesgo moderado, posibilidad de síntomas"
-    elif CAG_count(sequence) >= 40 and CAG_count(sequence) < 56:
+    elif CAG_count_ATG(sequence) >= 40 and CAG_count_ATG(sequence) < 56:
         return "riesgo alto"
-    elif CAG_count(sequence) >= 56:
+    elif CAG_count_ATG(sequence) >= 56:
         return "riesgo alto, alta posibilidad de inicio temprano"
     else:
-        return "término inválido"  # Por si falla.
+        return "término inválido"  # Por si falla o sucede algo extraño.
 
+# Diccionario para el multi FASTA
+sequences = {}  # Inicia diccionario vacio
+seq_name = ""  # Para nos nombres de la secuencia al imprimir.
 
-# Abre el archivo de con la secuencia
-with open("huntington_sequence.txt") as file:
+# Leer el archivo multi FASTA.
+with open("htt_multi_seq.fasta") as file:
     for line in file:
-        # Salta lineas comienzan con ">", típicas de encabezados en archivos FASTA, y lee las que no.
-        if not line.startswith(">"):
-            line = line.rstrip("\n")  # Elimina saltos de línea al final.
-            sequence += line  # Añade la línea a la variable sequence.
-            sequence = sequence.upper()  # Convierte a mayúscula, por si hay algún error.
+        line = line.strip()
+        if line.startswith(">"):
+            seq_name = line[1:]  # Guarda nombre sin ">"
+            sequences[seq_name] = ""  # Secuencia vacía en el diccionario
+        else:
+            sequences[seq_name] += line.upper()  # Agrega secuencia, mayúscula por si hay errores.
 
-# Imprime el máximo de repeticiones de CAG.
-print(f"La secuencia CAG se repite {CAG_count(sequence)} veces")
+# Archivo aparte para los resultados
+with open("resultados_htt.txt", "w") as output_file:
 
-# Evalúa el riesgo.
-print(f"Según lo anterior, se clasifica como {risk(CAG_count(sequence))}")
+    for seq_name in sequences:  # Usa las llaves de diccionario
+        sequence = sequences[seq_name]  # Accede a la secuencia mediante la llave
+
+        # Escribir resultados en el archivo
+        output_file.write(f"Secuencia: {seq_name}\n")
+        output_file.write(f"  La secuencia CAG se repite {CAG_count_ATG(sequence)} veces\n")
+        output_file.write(f"  Clasificación de riesgo: {risk(CAG_count_ATG(sequence))}\n\n")
+
+    print("Terminado")
